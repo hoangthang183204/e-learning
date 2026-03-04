@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Admin/UserController.php
 
 namespace App\Http\Controllers\Admin;
 
@@ -6,23 +7,28 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    // Danh sách user
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderBy('id', 'desc')->paginate(10);
-        return view('admin.users.index', compact('users'));
+        $role = $request->get('role', '');
+
+        $users = User::when($role, function ($query) use ($role) {
+            return $query->where('role', $role);
+        })
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return view('admin.users.index', compact('users', 'role'));
     }
 
-    // Form tạo user
     public function create()
     {
         return view('admin.users.create');
     }
 
-    // Lưu user mới
     public function store(Request $request)
     {
         $request->validate([
@@ -37,44 +43,72 @@ class UserController extends Controller
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'role'     => $request->role,
-            'status'   => 'active',
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'Tạo user thành công');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Tạo user thành công');
     }
 
-    // Form sửa user
     public function edit(User $user)
     {
         return view('admin.users.edit', compact('user'));
     }
 
-    // Cập nhật user
     public function update(Request $request, User $user)
     {
         $request->validate([
             'name'  => 'required|max:100',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'role'  => 'required|in:admin,teacher,student',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users')->ignore($user->id)
+            ],
+            'role'     => 'required|in:admin,teacher,student',
+            'password' => 'nullable|min:6',
         ]);
 
-        $user->update([
+        $data = [
             'name'  => $request->name,
             'email' => $request->email,
             'role'  => $request->role,
-        ]);
+        ];
 
-        return redirect()->route('admin.users.index')->with('success', 'Cập nhật thành công');
+        // Chỉ update password nếu có nhập
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Cập nhật thành công');
     }
 
-    // Xoá user
     public function destroy(User $user)
     {
+        // Không cho xóa chính mình
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Không thể xóa tài khoản đang đăng nhập');
+        }
+
+        // Không cho xóa admin
         if ($user->role === 'admin') {
-            return back()->with('error', 'Không thể xoá admin');
+            return back()->with('error', 'Không thể xóa tài khoản admin');
+        }
+
+        // Kiểm tra ràng buộc khóa ngoại
+        if ($user->role === 'teacher' && $user->courses()->count() > 0) {
+            return back()->with('error', 'Không thể xóa giảng viên đang phụ trách khóa học');
+        }
+
+        if ($user->role === 'student') {
+            // Xóa các bản ghi liên quan trong bảng trung gian
+            $user->courses()->detach();
+            $user->lessons()->detach();
+            $user->quizResults()->delete();
         }
 
         $user->delete();
-        return back()->with('success', 'Đã xoá user');
+        return back()->with('success', 'Đã xóa user');
     }
 }

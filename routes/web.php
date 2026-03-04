@@ -9,54 +9,48 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\QuizController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Student\QuizController;
+use App\Http\Controllers\Student\QuizStudentController;
 use App\Http\Controllers\Student\CourseStudentController;
 use App\Http\Controllers\Student\LessonStudentController;
 use App\Http\Controllers\Student\DashboardStudentController;
 
 // ADMIN
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin', function () {
-        return view('admin.layout');
-    });
-});
-
 Route::prefix('admin')
+    ->name('admin.')
     ->middleware(['auth', 'role:admin'])
     ->group(function () {
 
-        Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
-        Route::get('/users/create', [UserController::class, 'create'])->name('admin.users.create');
-        Route::post('/users', [UserController::class, 'store'])->name('admin.users.store');
-        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+        // Dashboard
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Users
+        Route::resource('users', UserController::class);
+
+        // Courses
+        Route::resource('courses', CourseController::class);
+
+        // Lessons
+        Route::resource('lessons', LessonController::class);
+
+        // Quizzes
+        Route::resource('quizzes', QuizController::class);
+
+        // Questions management
+        Route::prefix('quizzes/{quiz}')->name('quizzes.')->group(function () {
+            Route::get('questions', [QuizController::class, 'questions'])->name('questions');
+            Route::post('questions', [QuizController::class, 'storeQuestion'])->name('questions.store');
+            Route::get('results', [QuizController::class, 'results'])->name('results');
+        });
+
+        // Question AJAX
+        Route::get('questions/{question}', [QuizController::class, 'getQuestion'])->name('questions.get');
+        Route::put('questions/{question}', [QuizController::class, 'updateQuestion'])->name('questions.update');
+        Route::delete('questions/{question}', [QuizController::class, 'destroyQuestion'])->name('questions.destroy');
     });
-
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-
-Route::prefix('admin')
-    ->middleware(['auth', 'role:admin'])
-    ->group(function () {
-
-        Route::get('/courses', [CourseController::class, 'index'])->name('admin.courses.index');
-        Route::get('/courses/create', [CourseController::class, 'create'])->name('admin.courses.create');
-        Route::post('/courses', [CourseController::class, 'store'])->name('admin.courses.store');
-        Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('admin.courses.edit');
-        Route::put('/courses/{course}', [CourseController::class, 'update'])->name('admin.courses.update');
-        Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('admin.courses.destroy');
-    });
-
-Route::prefix('admin')->middleware('auth')->group(function () {
-    Route::resource('lessons', LessonController::class)
-        ->names('admin.lesson');
-});
 
 //=====================================================================================================================
 
@@ -67,8 +61,8 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/student', function () {
         return view('student.dashboard');
     });
-    Route::get('/quiz/{id}', [QuizController::class, 'show']);
-    Route::post('/quiz/{id}/submit', [QuizController::class, 'submit']);
+    Route::get('/quiz/{id}', [QuizStudentController::class, 'show']);
+    Route::post('/quiz/{id}/submit', [QuizStudentController::class, 'submit']);
 });
 
 
@@ -141,21 +135,21 @@ Route::middleware(['auth', 'role:student'])
         // Hiển thị quiz
         Route::get(
             'quiz/{quiz}',
-            [QuizController::class, 'show']
+            [QuizStudentController::class, 'show']
         )->name('quiz.show');
 
         // Nộp bài quiz
         Route::post(
             'quiz/{quiz}/submit',
-            [QuizController::class, 'submit']
+            [QuizStudentController::class, 'submit']
         )->name('quiz.submit');
     });
 
 // routes/web.php
-Route::post('/quiz/{quiz}/submit', [QuizController::class, 'submit'])
+Route::post('/quiz/{quiz}/submit', [QuizStudentController::class, 'submit'])
     ->name('student.quiz.submit');
 
-Route::get('/quiz/{quiz}/result', [QuizController::class, 'result'])
+Route::get('/quiz/{quiz}/result', [QuizStudentController::class, 'result'])
     ->name('student.quiz.result');
 
 Route::post(
@@ -291,6 +285,6 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth', 'role:teacher'])->get('/teacher', [DashboardTeacherController::class, 'teacher']);
-Route::middleware(['auth', 'role:admin'])->get('/admin', [DashboardController::class, 'admin']);
-Route::middleware(['auth', 'role:student'])->get('/student', [DashboardStudentController::class, 'student']);
+// Route::middleware(['auth', 'role:teacher'])->get('/teacher', [DashboardTeacherController::class, 'teacher']);
+// Route::middleware(['auth', 'role:admin'])->get('/admin', [DashboardController::class, 'admin']);
+// Route::middleware(['auth', 'role:student'])->get('/student', [DashboardStudentController::class, 'student']);

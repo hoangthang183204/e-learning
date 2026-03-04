@@ -355,12 +355,18 @@
                         <span>Quản lý Khoá Học</span>
                     </a>
                 </li>
-                 <li class="nav-item">
+                <li class="nav-item">
                     <a href="/admin/lessons" class="nav-link @yield('users-active')">
                         <i class="fas fa-book"></i>
                         <span>Bài Học</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.quizzes.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.quizzes.*') ? 'active' : '' }}">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Bài Kiểm Tra</span>
+                    </a>
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="fas fa-chart-line"></i>

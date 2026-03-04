@@ -4,7 +4,7 @@
 @section('content')
 <h3>Thêm bài học</h3>
 
-<form method="POST" action="{{ route('admin.lesson.store') }}">
+<form method="POST" action="{{ route('admin.lessons.store') }}">
     @csrf
 
     <select name="course_id" class="form-control mb-2">
@@ -26,6 +26,6 @@
         placeholder="Thứ tự bài học">
 
     <button class="btn btn-success">Lưu</button>
-    <a href="{{ route('admin.lesson.index') }}" class="btn btn-secondary">Quay lại</a>
+    <a href="{{ route('admin.lessons.index') }}" class="btn btn-secondary">Quay lại</a>
 </form>
 @endsection

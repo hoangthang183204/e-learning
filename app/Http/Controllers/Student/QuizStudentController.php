@@ -7,7 +7,7 @@ use App\Models\Quiz;
 use App\Models\QuizResult;
 use Illuminate\Http\Request;
 
-class QuizController extends Controller
+class QuizStudentController extends Controller
 {
     public function show(Quiz $quiz)
     {
