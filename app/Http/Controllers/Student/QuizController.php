@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-
-
 use App\Models\Quiz;
 use App\Models\QuizResult;
 use Illuminate\Http\Request;
-
 
 class QuizController extends Controller
 {
@@ -16,6 +13,7 @@ class QuizController extends Controller
     {
         $quiz->load('questions.options');
 
+        // Kiểm tra xem user đã làm quiz này chưa
         $result = auth()->user()
             ->quizResults()
             ->where('quiz_id', $quiz->id)
@@ -27,49 +25,83 @@ class QuizController extends Controller
     public function submit(Request $request, Quiz $quiz)
     {
         $score = 0;
+        $totalQuestions = $quiz->questions->count();
+        $answers = [];
 
         foreach ($quiz->questions as $question) {
             $answer = $request->answers[$question->id] ?? null;
 
-            if (
-                $answer &&
-                $question->options()
-                ->where('id', $answer)
-                ->where('is_correct', 1)
-                ->exists()
-            ) {
-                $score++;
+            $answers[$question->id] = [
+                'selected' => $answer,
+                'correct' => false
+            ];
+
+            if ($answer) {
+                $isCorrect = $question->options()
+                    ->where('id', $answer)
+                    ->where('is_correct', 1)
+                    ->exists();
+
+                if ($isCorrect) {
+                    $score++;
+                    $answers[$question->id]['correct'] = true;
+                }
             }
         }
 
-        $passed = $score >= ceil($quiz->questions->count() * 0.7);
+        $passed = $score >= ceil($totalQuestions * 0.7);
 
-        // redirect sang trang result
-        return redirect()->route('student.quiz.result', $quiz)
-            ->with([
+        // LƯU KẾT QUẢ VÀO DATABASE - THÊM completed_at
+        QuizResult::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'quiz_id' => $quiz->id
+            ],
+            [
                 'score' => $score,
-                'passed' => $passed
-            ]);
+                'total_questions' => $totalQuestions,
+                'passed' => $passed,
+                'answers' => json_encode($answers),
+                'completed_at' => now()  // 👈 QUAN TRỌNG: Thêm dòng này
+            ]
+        );
+
+        return redirect()->route('student.quiz.result', $quiz);
     }
+
     public function result(Quiz $quiz)
     {
-        if (!session()->has('score')) {
-            abort(403, 'Bạn chưa nộp bài quiz');
+        // Lấy kết quả từ database thay vì session
+        $result = auth()->user()
+            ->quizResults()
+            ->where('quiz_id', $quiz->id)
+            ->first();
+
+        if (!$result) {
+            return redirect()->route('student.quiz.show', $quiz)
+                ->with('error', 'Bạn chưa làm bài quiz này');
         }
 
+        $lesson = $quiz->lesson;
+
         return view('student.quiz.result', [
-            'quiz'   => $quiz,
-            'score'  => session('score'),
-            'passed' => session('passed')
+            'quiz' => $quiz,
+            'result' => $result,
+            'score' => $result->score,
+            'passed' => $result->passed,
+            'lesson' => $lesson
         ]);
     }
+
     public function retry(Quiz $quiz)
     {
+        // Xóa kết quả cũ để làm lại
         auth()->user()
             ->quizResults()
             ->where('quiz_id', $quiz->id)
             ->delete();
 
-        return redirect()->route('student.quiz.show', $quiz);
+        return redirect()->route('student.quiz.show', $quiz)
+            ->with('success', 'Bạn có thể làm lại bài quiz');
     }
 }

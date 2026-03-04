@@ -35,4 +35,6 @@ class Lesson extends Model
             'lesson_user'
         )->withPivot('completed_at');
     }
+
+    
 }
