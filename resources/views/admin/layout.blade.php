@@ -378,37 +378,6 @@
 
             <div class="divider"></div>
 
-            <!-- Management Menu -->
-            <ul class="nav-menu">
-                <li class="menu-label">QUẢN LÝ</li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-newspaper"></i>
-                        <span>Bài viết</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-tags"></i>
-                        <span>Danh mục</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-comments"></i>
-                        <span>Bình luận</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-image"></i>
-                        <span>Media</span>
-                    </a>
-                </li>
-            </ul>
-
-            <div class="divider"></div>
-
             <!-- Settings Menu -->
             <ul class="nav-menu">
                 <li class="menu-label">CÀI ĐẶT</li>
