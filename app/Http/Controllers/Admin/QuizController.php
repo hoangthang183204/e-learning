@@ -66,8 +66,6 @@ class QuizController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
-
             $quiz = Quiz::create([
                 'lesson_id' => $request->lesson_id,
                 'title' => $request->title,
@@ -77,16 +75,22 @@ class QuizController extends Controller
                 'attempts_allowed' => $request->attempts_allowed,
             ]);
 
-            DB::commit();
-
             return redirect()
                 ->route('admin.quizzes.questions', $quiz->id)
                 ->with('success', 'Tạo bài kiểm tra thành công! Hãy thêm câu hỏi.');
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Lỗi database
+            $errorCode = $e->errorInfo[1] ?? null;
+            $errorMessage = $e->getMessage();
+
             return back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+                ->with('error', "Lỗi database (Mã: $errorCode): $errorMessage");
+        } catch (\Exception $e) {
+            // Lỗi khác
+            return back()
+                ->withInput()
+                ->with('error', 'Lỗi: ' . $e->getMessage());
         }
     }
 
@@ -195,7 +199,10 @@ class QuizController extends Controller
                 'points' => $request->points,
             ]);
 
-            // Tạo các đáp án
+            // Xóa tất cả options cũ của câu hỏi này (nếu có - để an toàn)
+            // $question->options()->delete(); // Không cần vì mới tạo
+
+            // Tạo các đáp án mới
             foreach ($request->options as $index => $opt) {
                 if (!empty($opt['text'])) {
                     $question->options()->create([

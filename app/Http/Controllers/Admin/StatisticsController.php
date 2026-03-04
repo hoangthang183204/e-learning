@@ -16,9 +16,6 @@ use Carbon\Carbon;
 
 class StatisticsController extends Controller
 {
-    /**
-     * Trang tổng quan thống kê
-     */
     public function index()
     {
         // Thống kê tổng quan
@@ -74,15 +71,12 @@ class StatisticsController extends Controller
         ));
     }
 
-    /**
-     * Thống kê chi tiết người dùng
-     */
+
     public function users(Request $request)
     {
         $startDate = $request->get('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
         $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
 
-        // Biểu đồ đăng ký theo ngày
         $registrations = User::whereBetween('created_at', [$startDate, $endDate])
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as total'))
             ->groupBy('date')

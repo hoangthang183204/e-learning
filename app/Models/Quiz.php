@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Quiz extends Model
 {
+    protected $table = 'quizzes';
+
     protected $fillable = [
         'title',
         'lesson_id',
@@ -14,6 +16,8 @@ class Quiz extends Model
         'pass_score',
         'attempts_allowed'
     ];
+
+    public $timestamps = true;
 
     public function questions()
     {
