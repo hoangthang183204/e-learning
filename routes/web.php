@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\QuizController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\StatisticsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Student\QuizStudentController;
 use App\Http\Controllers\Student\CourseStudentController;
@@ -50,6 +51,16 @@ Route::prefix('admin')
         Route::get('questions/{question}', [QuizController::class, 'getQuestion'])->name('questions.get');
         Route::put('questions/{question}', [QuizController::class, 'updateQuestion'])->name('questions.update');
         Route::delete('questions/{question}', [QuizController::class, 'destroyQuestion'])->name('questions.destroy');
+
+        // STATISTICS 
+        Route::prefix('statistics')->name('statistics.')->group(function () {
+            Route::get('/', [StatisticsController::class, 'index'])->name('index');
+            Route::get('/users', [StatisticsController::class, 'users'])->name('users');
+            Route::get('/courses', [StatisticsController::class, 'courses'])->name('courses');
+            Route::get('/quizzes', [StatisticsController::class, 'quizzes'])->name('quizzes');
+            Route::get('/revenue', [StatisticsController::class, 'revenue'])->name('revenue');
+            Route::get('/export', [StatisticsController::class, 'export'])->name('export');
+        });
     });
 
 //=====================================================================================================================

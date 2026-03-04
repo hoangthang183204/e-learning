@@ -161,15 +161,7 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $user->name }}</td>
                                             <td>{{ $user->email }}</td>
-                                            <td>
-                                                @if ($user->role == 'admin')
-                                                    <span class="badge bg-danger">Admin</span>
-                                                @elseif($user->role == 'teacher')
-                                                    <span class="badge bg-success">Teacher</span>
-                                                @else
-                                                    <span class="badge bg-info">Student</span>
-                                                @endif
-                                            </td>
+                                            <td>{{ $user->role }}</td>
                                             <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
                                         </tr>
                                     @empty
@@ -209,13 +201,7 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $course->title }}</td>
                                             <td>{{ $course->teacher->name ?? 'N/A' }}</td>
-                                            <td>
-                                                @if ($course->status)
-                                                    <span class="badge bg-success">Hoạt động</span>
-                                                @else
-                                                    <span class="badge bg-secondary">Tạm dừng</span>
-                                                @endif
-                                            </td>
+                                            <td>{{ $course->status == 1 ? 'Hoạt động' : 'Tạm dừng' }}</td>
                                             <td>{{ $course->created_at->format('d/m/Y H:i') }}</td>
                                         </tr>
                                     @empty

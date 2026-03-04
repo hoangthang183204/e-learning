@@ -73,7 +73,6 @@ class UserController extends Controller
             'role'  => $request->role,
         ];
 
-        // Chỉ update password nếu có nhập
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
@@ -97,18 +96,24 @@ class UserController extends Controller
         }
 
         // Kiểm tra ràng buộc khóa ngoại
-        if ($user->role === 'teacher' && $user->courses()->count() > 0) {
-            return back()->with('error', 'Không thể xóa giảng viên đang phụ trách khóa học');
+        if ($user->role === 'teacher') {
+            if ($user->courses()->count() > 0) {
+                return back()->with('error', 'Không thể xóa giảng viên đang phụ trách khóa học');
+            }
         }
 
         if ($user->role === 'student') {
-            // Xóa các bản ghi liên quan trong bảng trung gian
+            // Xóa các bản ghi liên quan
             $user->courses()->detach();
             $user->lessons()->detach();
             $user->quizResults()->delete();
         }
 
-        $user->delete();
-        return back()->with('success', 'Đã xóa user');
+        try {
+            $user->delete();
+            return back()->with('success', 'Đã xóa user thành công');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra khi xóa user');
+        }
     }
 }

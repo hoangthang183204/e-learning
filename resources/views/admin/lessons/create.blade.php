@@ -1,31 +1,94 @@
-{{-- resources/views/admin/lessons/create.blade.php --}}
 @extends('admin.layout')
 
+@section('title', 'Thêm bài học mới')
+
 @section('content')
-<h3>Thêm bài học</h3>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Thêm bài học mới</h1>
+        <a href="{{ route('admin.lessons.index', ['course_id' => $selectedCourse]) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
 
-<form method="POST" action="{{ route('admin.lessons.store') }}">
-    @csrf
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    <select name="course_id" class="form-control mb-2">
-        <option value="">-- Chọn khoá học --</option>
-        @foreach ($courses as $course)
-            <option value="{{ $course->id }}">{{ $course->title }}</option>
-        @endforeach
-    </select>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ route('admin.lessons.store') }}">
+                @csrf
 
-    <input class="form-control mb-2" name="title" placeholder="Tiêu đề bài học">
+                <div class="mb-3">
+                    <label class="form-label">Khóa học <span class="text-danger">*</span></label>
+                    <select name="course_id" class="form-control @error('course_id') is-invalid @enderror" required>
+                        <option value="">-- Chọn khóa học --</option>
+                        @foreach($courses as $course)
+                            <option value="{{ $course->id }}" 
+                                {{ old('course_id', $selectedCourse) == $course->id ? 'selected' : '' }}>
+                                {{ $course->title }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('course_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-    <textarea class="form-control mb-2" name="content" rows="4"
-        placeholder="Nội dung bài học"></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Tiêu đề bài học <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" 
+                           value="{{ old('title') }}" required>
+                    @error('title')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-    <input class="form-control mb-2" name="video_url"
-        placeholder="Link video (Youtube)">
+                <div class="mb-3">
+                    <label class="form-label">Nội dung <span class="text-danger">*</span></label>
+                    <textarea name="content" class="form-control @error('content') is-invalid @enderror" 
+                              rows="6" required>{{ old('content') }}</textarea>
+                    @error('content')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-    <input class="form-control mb-2" name="order_number" type="number"
-        placeholder="Thứ tự bài học">
+                <div class="mb-3">
+                    <label class="form-label">Link video (YouTube)</label>
+                    <input type="url" name="video_url" class="form-control @error('video_url') is-invalid @enderror" 
+                           value="{{ old('video_url') }}" placeholder="https://www.youtube.com/watch?v=...">
+                    @error('video_url')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Nhập link YouTube để nhúng video</small>
+                </div>
 
-    <button class="btn btn-success">Lưu</button>
-    <a href="{{ route('admin.lessons.index') }}" class="btn btn-secondary">Quay lại</a>
-</form>
+                <div class="mb-3">
+                    <label class="form-label">Thứ tự bài học <span class="text-danger">*</span></label>
+                    <input type="number" name="order_number" class="form-control @error('order_number') is-invalid @enderror" 
+                           value="{{ old('order_number', $nextOrder) }}" min="1" required>
+                    @error('order_number')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Số thứ tự hiển thị trong khóa học</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Lưu bài học
+                </button>
+                <a href="{{ route('admin.lessons.index', ['course_id' => $selectedCourse]) }}" 
+                   class="btn btn-secondary">
+                    Hủy
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Quiz extends Model
 {
     protected $fillable = [
-        'title', 
+        'title',
         'lesson_id',
         'description',
         'time_limit',
@@ -25,18 +25,16 @@ class Quiz extends Model
         return $this->belongsTo(Lesson::class);
     }
 
+
     public function results()
     {
         return $this->hasMany(QuizResult::class);
     }
-
-    // Đếm số câu hỏi
     public function getQuestionsCountAttribute()
     {
         return $this->questions()->count();
     }
 
-    // Tính tổng điểm tối đa
     public function getTotalPointsAttribute()
     {
         return $this->questions()->sum('points');

@@ -13,7 +13,7 @@ class CourseController extends Controller
     public function index()
     {
         $courses = Course::with('teacher')
-            ->withCount('lessons', 'students')
+            ->withCount(['lessons', 'students'])
             ->orderByDesc('id')
             ->paginate(10);
 
@@ -34,9 +34,12 @@ class CourseController extends Controller
             'teacher_id'  => 'required|exists:users,id,role,teacher',
         ]);
 
-        // Xử lý checkbox status (nếu không checked thì mặc định 0)
-        $data = $request->all();
-        $data['status'] = $request->has('status') ? 1 : 0;
+        $data = [
+            'title'       => $request->title,
+            'description' => $request->description,
+            'teacher_id'  => $request->teacher_id,
+            'status'      => $request->has('status') ? 1 : 0,
+        ];
 
         Course::create($data);
 
@@ -58,8 +61,12 @@ class CourseController extends Controller
             'teacher_id'  => 'required|exists:users,id,role,teacher',
         ]);
 
-        $data = $request->all();
-        $data['status'] = $request->has('status') ? 1 : 0;
+        $data = [
+            'title'       => $request->title,
+            'description' => $request->description,
+            'teacher_id'  => $request->teacher_id,
+            'status'      => $request->has('status') ? 1 : 0,
+        ];
 
         $course->update($data);
 
@@ -74,7 +81,11 @@ class CourseController extends Controller
             return back()->with('error', 'Không thể xoá khoá học đã có bài học');
         }
 
+        // Xoá các bản ghi liên quan trong bảng course_user
+        $course->students()->detach();
+
         $course->delete();
+
         return back()->with('success', 'Đã xoá khoá học');
     }
 }
