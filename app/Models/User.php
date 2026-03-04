@@ -46,11 +46,6 @@ class User extends Authenticatable
         ];
     }
 
-    public function completedLessons()
-    {
-        return $this->belongsToMany(Lesson::class)
-            ->withPivot('completed_at');
-    }
     public function quizResults()
     {
         return $this->hasMany(QuizResult::class);
@@ -62,7 +57,13 @@ class User extends Authenticatable
     }
     public function courses()
     {
-        return $this->belongsToMany(Course::class, 'course_user')
-            ->withPivot('enrolled_at');
+        return $this->belongsToMany(Course::class)
+            ->withPivot(['status', 'completed_at']);
+    }
+
+    public function completedLessons()
+    {
+        return $this->belongsToMany(Lesson::class, 'lesson_user')
+            ->withPivot('completed_at');
     }
 }
