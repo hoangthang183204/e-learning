@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Admin/CourseController.php
 
 namespace App\Http\Controllers\Admin;
 
@@ -11,7 +12,11 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::with('teacher')->orderByDesc('id')->paginate(10);
+        $courses = Course::with('teacher')
+            ->withCount('lessons', 'students')
+            ->orderByDesc('id')
+            ->paginate(10);
+
         return view('admin.courses.index', compact('courses'));
     }
 
@@ -24,17 +29,16 @@ class CourseController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title'      => 'required|max:255',
-            'description' => 'required',
-            'teacher_id' => 'required|exists:users,id',
+            'title'       => 'required|max:255',
+            'description' => 'nullable|string',
+            'teacher_id'  => 'required|exists:users,id,role,teacher',
         ]);
 
-        Course::create([
-            'title'       => $request->title,
-            'description' => $request->description,
-            'teacher_id'  => $request->teacher_id,
-            'status'      => $request->status, 
-        ]);
+        // Xử lý checkbox status (nếu không checked thì mặc định 0)
+        $data = $request->all();
+        $data['status'] = $request->has('status') ? 1 : 0;
+
+        Course::create($data);
 
         return redirect()->route('admin.courses.index')
             ->with('success', 'Tạo khoá học thành công');
@@ -49,18 +53,15 @@ class CourseController extends Controller
     public function update(Request $request, Course $course)
     {
         $request->validate([
-            'title'      => 'required|max:255',
-            'description' => 'required',
-            'teacher_id' => 'required|exists:users,id',
-            'status'     => 'required',
+            'title'       => 'required|max:255',
+            'description' => 'nullable|string',
+            'teacher_id'  => 'required|exists:users,id,role,teacher',
         ]);
 
-        $course->update($request->only(
-            'title',
-            'description',
-            'teacher_id',
-            'status'
-        ));
+        $data = $request->all();
+        $data['status'] = $request->has('status') ? 1 : 0;
+
+        $course->update($data);
 
         return redirect()->route('admin.courses.index')
             ->with('success', 'Cập nhật khoá học thành công');
@@ -68,6 +69,11 @@ class CourseController extends Controller
 
     public function destroy(Course $course)
     {
+        // Kiểm tra xem có bài học không trước khi xoá
+        if ($course->lessons()->count() > 0) {
+            return back()->with('error', 'Không thể xoá khoá học đã có bài học');
+        }
+
         $course->delete();
         return back()->with('success', 'Đã xoá khoá học');
     }
