@@ -368,8 +368,9 @@
                         <span>Bài Kiểm Tra</span>
                     </a>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-chart-line"></i>
+                    <a href="{{ route('admin.statistics.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.statistics.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-pie"></i>
                         <span>Thống kê</span>
                     </a>
                 </li>

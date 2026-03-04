@@ -14,27 +14,27 @@ class Lesson extends Model
         'order_number',
     ];
 
-    // ✅ QUAN HỆ ĐÚNG
     public function course()
     {
         return $this->belongsTo(Course::class);
     }
-    public function completedLessons()
+
+    public function quizzes()
     {
-        return $this->belongsToMany(Lesson::class)
-            ->withPivot('completed_at');
-    }
-    public function quiz()
-    {
-        return $this->hasOne(Quiz::class);
-    }
-    public function completedByUsers()
-    {
-        return $this->belongsToMany(
-            User::class,
-            'lesson_user'
-        )->withPivot('completed_at');
+        return $this->hasMany(Quiz::class);
     }
 
-    
+    public function completedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'lesson_user')
+            ->withPivot('completed_at')
+            ->withTimestamps();
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'lesson_user')
+            ->withPivot('completed_at')
+            ->withTimestamps();
+    }
 }
