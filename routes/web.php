@@ -51,6 +51,8 @@ Route::prefix('admin')
         Route::get('questions/{question}', [QuizController::class, 'getQuestion'])->name('questions.get');
         Route::put('questions/{question}', [QuizController::class, 'updateQuestion'])->name('questions.update');
         Route::delete('questions/{question}', [QuizController::class, 'destroyQuestion'])->name('questions.destroy');
+        Route::get('questions/{question}', [QuizController::class, 'getQuestion'])
+            ->name('questions.get');
 
         // STATISTICS 
         Route::prefix('statistics')->name('statistics.')->group(function () {
