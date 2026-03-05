@@ -249,13 +249,13 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('teacher.courses.index') }}">
+                        <a href="{{ route('teacher.all-students') }}" class="@yield('students-active')">
                             <i class="bi bi-people"></i>
                             <span class="menu-text">Học viên</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/teacher/analytics" class="@yield('analytics-active')">
+                        <a href="{{ route('teacher.statistics') }}" class="@yield('statistics-active')">
                             <i class="bi bi-graph-up"></i>
                             <span class="menu-text">Thống kê</span>
                         </a>

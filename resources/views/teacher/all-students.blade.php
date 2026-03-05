@@ -1,10 +1,10 @@
-{{-- resources/views/teacher/courses/students.blade.php --}}
+{{-- resources/views/teacher/all-students.blade.php --}}
 @extends('teacher.layout')
 
-@section('title', 'Học viên - ' . $course->title)
-@section('courses-active', 'active')
+@section('title', 'Tất cả học viên')
+@section('students-active', 'active')
 @section('page-icon', 'people')
-@section('page-title', 'Quản lý học viên')
+@section('page-title', 'Tất cả học viên')
 
 @section('content')
 <div class="container-fluid px-4">
@@ -12,8 +12,6 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('teacher.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('teacher.courses.index') }}">Khóa học</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('teacher.courses.show', $course) }}">{{ $course->title }}</a></li>
             <li class="breadcrumb-item active">Học viên</li>
         </ol>
     </nav>
@@ -21,20 +19,15 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="mb-1">Danh sách học viên</h4>
+            <h4 class="mb-1">Tất cả học viên</h4>
             <p class="text-secondary mb-0">
                 <i class="bi bi-people-fill me-1"></i>
                 Tổng số: <span class="fw-bold">{{ $students->total() }}</span> học viên
             </p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('teacher.courses.students.add', $course) }}" class="btn btn-primary">
-                <i class="bi bi-person-plus me-1"></i> Thêm học viên
-            </a>
-            <a href="{{ route('teacher.courses.students.export', $course) }}" class="btn btn-outline-secondary">
-                <i class="bi bi-download me-1"></i> Xuất Excel
-            </a>
-        </div>
+        <a href="{{ route('teacher.courses.index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-plus-circle"></i> Thêm học viên vào khóa học
+        </a>
     </div>
 
     <!-- Search -->
@@ -47,7 +40,7 @@
                             <i class="bi bi-search"></i>
                         </span>
                         <input type="text" class="form-control border-start-0" id="searchInput" 
-                               placeholder="Tìm kiếm theo tên hoặc email...">
+                               placeholder="Tìm kiếm theo tên, email hoặc khóa học...">
                     </div>
                 </div>
             </div>
@@ -64,8 +57,8 @@
                             <th class="ps-4">#</th>
                             <th>Học viên</th>
                             <th>Email</th>
+                            <th>Khóa học</th>
                             <th>Ngày đăng ký</th>
-                            <th>Tiến độ</th>
                             <th class="text-end pe-4">Thao tác</th>
                         </tr>
                     </thead>
@@ -83,49 +76,23 @@
                                 </td>
                                 <td class="student-email">{{ $student->email }}</td>
                                 <td>
-                                    <small>
-                                        <i class="bi bi-calendar3 me-1"></i>
-                                        {{ \Carbon\Carbon::parse($student->pivot->enrolled_at)->format('d/m/Y') }}
-                                        <br>
-                                        <span class="text-secondary">
-                                            {{ \Carbon\Carbon::parse($student->pivot->enrolled_at)->diffForHumans() }}
-                                        </span>
-                                    </small>
+                                    <a href="{{ route('teacher.courses.show', $student->course_id) }}" class="text-decoration-none">
+                                        {{ $student->course_title }}
+                                    </a>
                                 </td>
                                 <td>
-                                    @php
-                                        $completedCount = $student->completedLessons->count();
-                                        $percent = $totalLessons > 0 ? round(($completedCount / $totalLessons) * 100) : 0;
-                                        $color = $percent >= 80 ? 'success' : ($percent >= 50 ? 'warning' : 'danger');
-                                    @endphp
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-{{ $color }}" style="width: {{ $percent }}%"></div>
-                                        </div>
-                                        <span class="small">{{ $percent }}%</span>
-                                    </div>
+                                    <small>
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ \Carbon\Carbon::parse($student->enrolled_at)->format('d/m/Y') }}
+                                    </small>
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="btn-group">
-                                        <a href="{{ route('teacher.courses.progress', [$course, 'student' => $student->id]) }}" 
+                                        <a href="{{ route('teacher.courses.progress.detail', [$student->course_id, $student->id]) }}" 
                                            class="btn btn-sm btn-outline-info" title="Xem tiến độ">
                                             <i class="bi bi-graph-up"></i>
                                         </a>
-                                        <a href="{{ route('teacher.courses.quiz-results', [$course, 'student' => $student->id]) }}" 
-                                           class="btn btn-sm btn-outline-warning" title="Xem kết quả quiz">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                onclick="removeStudent({{ $student->id }})" title="Xóa khỏi khóa học">
-                                            <i class="bi bi-person-x"></i>
-                                        </button>
                                     </div>
-                                    <form id="remove-form-{{ $student->id }}" 
-                                          action="{{ route('teacher.courses.students.remove', [$course, $student->id]) }}" 
-                                          method="POST" class="d-none">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
                                 </td>
                             </tr>
                         @empty
@@ -134,8 +101,8 @@
                                     <i class="bi bi-people fs-1 text-secondary mb-3"></i>
                                     <h6 class="text-secondary">Chưa có học viên nào</h6>
                                     <p class="text-secondary small mb-3">Bắt đầu thêm học viên vào khóa học</p>
-                                    <a href="{{ route('teacher.courses.students.add', $course) }}" class="btn btn-primary btn-sm">
-                                        <i class="bi bi-person-plus"></i> Thêm học viên
+                                    <a href="{{ route('teacher.courses.index') }}" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-plus-circle"></i> Đến trang khóa học
                                     </a>
                                 </td>
                             </tr>
@@ -156,19 +123,14 @@
 </div>
 
 <script>
-function removeStudent(id) {
-    if (confirm('Bạn có chắc muốn xóa học viên này khỏi khóa học?')) {
-        document.getElementById('remove-form-' + id).submit();
-    }
-}
-
 // Search functionality
 document.getElementById('searchInput')?.addEventListener('keyup', function() {
     const searchTerm = this.value.toLowerCase();
     document.querySelectorAll('.student-row').forEach(row => {
         const name = row.querySelector('.student-name')?.textContent.toLowerCase() || '';
         const email = row.querySelector('.student-email')?.textContent.toLowerCase() || '';
-        const shouldShow = name.includes(searchTerm) || email.includes(searchTerm);
+        const course = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+        const shouldShow = name.includes(searchTerm) || email.includes(searchTerm) || course.includes(searchTerm);
         row.style.display = shouldShow ? '' : 'none';
     });
 });

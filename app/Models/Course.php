@@ -8,6 +8,12 @@ class Course extends Model
 {
     //
     protected $fillable = ['title', 'description', 'teacher_id', 'status'];
+    protected $casts = [
+        'status' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
+
 
     public function teacher()
     {
@@ -34,5 +40,15 @@ class Course extends Model
     public function quizzes()
     {
         return $this->hasMany(Quiz::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    public function scopeOwnedBy($query, $teacherId)
+    {
+        return $query->where('teacher_id', $teacherId);
     }
 }
