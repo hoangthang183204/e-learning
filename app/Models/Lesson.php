@@ -13,6 +13,11 @@ class Lesson extends Model
         'video_url',
         'order_number',
     ];
+    protected $casts = [
+        'order_number' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
 
     public function course()
     {
@@ -36,5 +41,10 @@ class Lesson extends Model
         return $this->belongsToMany(User::class, 'lesson_user')
             ->withPivot('completed_at')
             ->withTimestamps();
+    }
+
+    public function quiz()
+    {
+        return $this->hasOne(Quiz::class);
     }
 }

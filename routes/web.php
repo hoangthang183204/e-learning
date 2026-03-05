@@ -4,6 +4,7 @@ use App\Http\Controllers\Teacher\QuizManageController;
 use App\Http\Controllers\Teacher\DashboardTeacherController;
 use App\Http\Controllers\Teacher\TeacherCourseController;
 use App\Http\Controllers\Teacher\StudentProgressController;
+use App\Http\Controllers\Teacher\LessonTeacherController;
 use App\Http\Controllers\Teacher\CourseTeacherController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\UserController;
@@ -174,111 +175,52 @@ Route::post(
 
 // Teacher
 
-Route::middleware(['auth', 'role:teacher'])
-    ->prefix('teacher')
-    ->name('teacher.')
-    ->group(function () {
-        Route::get(
-            '/dashboard',
-            [DashboardTeacherController::class, 'teacher']
-        )->name('dashboard');
-
-        // Dashboard chi tiết khoá học
-        Route::get(
-            'courses/{course}/dashboard',
-            [DashboardTeacherController::class, 'courseDashboard']
-        )->name('courses.dashboard');
-    });
-
-Route::middleware(['auth', 'role:teacher'])->group(function () {
-    Route::get('teacher/quizzes', [QuizManageController::class, 'index']);
-    Route::get('teacher/quizzes/create', [QuizManageController::class, 'create']);
-    Route::post('teacher/quizzes', [QuizManageController::class, 'store']);
-    Route::get(
-        'teacher/quizzes/{quiz}',
-        [QuizManageController::class, 'show']
-    )->name('teacher.quizzes.show');
-    Route::delete(
-        'teacher/quizzes/{quiz}',
-        [QuizManageController::class, 'destroy']
-    )->name('teacher.quizzes.destroy');
-    Route::get(
-        'teacher/quizzes/{quiz}/edit',
-        [QuizManageController::class, 'edit']
-    )->name('teacher.quizzes.edit');
-
-    Route::put(
-        'teacher/quizzes/{quiz}',
-        [QuizManageController::class, 'update']
-    )->name('teacher.quizzes.update');
-});
 
 Route::middleware(['auth', 'role:teacher'])
     ->prefix('teacher')
     ->name('teacher.')
     ->group(function () {
 
-        Route::get('courses', [TeacherCourseController::class, 'index'])
-            ->name('courses.index');
+        // ===== 1. DASHBOARD =====
+        Route::get('/', [DashboardTeacherController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/statistics', [DashboardTeacherController::class, 'statistics'])->name('statistics');
+        Route::get('/courses/{course}/dashboard', [DashboardTeacherController::class, 'courseDashboard'])->name('courses.dashboard');
 
-        Route::get('courses/{course}', [TeacherCourseController::class, 'show'])
-            ->name('courses.show');
+        // ===== 2. COURSE MANAGEMENT =====
+        Route::resource('courses', TeacherCourseController::class);
 
-        Route::get('courses/{course}/edit', [TeacherCourseController::class, 'edit'])
-            ->name('courses.edit');
+        Route::get('/all-students', [TeacherCourseController::class, 'allStudents'])->name('all-students');
 
-        Route::put('courses/{course}', [TeacherCourseController::class, 'update'])
-            ->name('courses.update');
-    });
+        // ===== 3. STUDENT MANAGEMENT (TRONG COURSE) =====
+        Route::prefix('courses/{course}')->name('courses.')->group(function () {
+            // Danh sách học viên
+            Route::get('/students', [TeacherCourseController::class, 'students'])->name('students');
+            Route::get('/students/add', [TeacherCourseController::class, 'addForm'])->name('students.add');
+            Route::post('/students', [TeacherCourseController::class, 'add'])->name('students.store');
+            Route::delete('/students/{user}', [TeacherCourseController::class, 'remove'])->name('students.remove');
+            Route::get('/students/export', [TeacherCourseController::class, 'exportStudents'])->name('students.export');
 
-Route::middleware(['auth', 'role:teacher'])
-    ->prefix('teacher')
-    ->name('teacher.')
-    ->group(function () {
+            // Tiến độ học tập
+            Route::get('/progress', [StudentProgressController::class, 'index'])->name('progress');
+            Route::get('/progress/{student}', [StudentProgressController::class, 'show'])->name('progress.detail');
 
-        Route::get(
-            'courses/{course}/students',
-            [CourseTeacherController::class, 'students']
-        )->name('courses.students');
-    });
+            // Kết quả quiz
+            Route::get('/quiz-results', [TeacherCourseController::class, 'quizResults'])->name('quiz-results');
+            Route::get('/quiz-results/{student}', [TeacherCourseController::class, 'quizResults'])->name('quiz-results.student');
 
-Route::middleware(['auth', 'role:teacher'])
-    ->prefix('teacher')
-    ->name('teacher.')
-    ->group(function () {
+            // Thống kê khóa học
+            Route::get('/statistics', [TeacherCourseController::class, 'statistics'])->name('statistics');
+            Route::get('/statistics/export', [TeacherCourseController::class, 'exportStatistics'])->name('statistics.export');
+        });
 
-        Route::get(
-            'courses/{course}/progress',
-            [StudentProgressController::class, 'index']
-        )->name('courses.progress');
-    });
+        // ===== 4. LESSON MANAGEMENT =====
+        Route::resource('courses.lessons', LessonTeacherController::class);
 
-Route::get(
-    'teacher/courses/{course}/progress',
-    [StudentProgressController::class, 'index']
-)->name('teacher.courses.progress');
-
-Route::get(
-    'teacher/courses/{course}/quiz-results',
-    [CourseController::class, 'quizResults']
-)->name('teacher.courses.quiz_results');
-
-Route::middleware(['auth', 'role:teacher'])
-    ->prefix('teacher')
-    ->name('teacher.')
-    ->group(function () {
-
-        Route::post(
-            'courses/{course}/students/{user}/approve',
-            [CourseTeacherController::class, 'approve']
-        )->name('courses.approve');
-
-        Route::post(
-            'courses/{course}/students/{user}/block',
-            [CourseTeacherController::class, 'block']
-        )->name('courses.block');
+        // ===== 5. QUIZ MANAGEMENT =====
+        Route::resource('quizzes', QuizManageController::class);
     });
 //====================================================================================================================
+
 
 Route::middleware(['auth', 'lesson.access'])
     ->group(function () {
