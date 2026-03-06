@@ -5,7 +5,7 @@ use App\Http\Controllers\Teacher\DashboardTeacherController;
 use App\Http\Controllers\Teacher\TeacherCourseController;
 use App\Http\Controllers\Teacher\StudentProgressController;
 use App\Http\Controllers\Teacher\LessonTeacherController;
-use App\Http\Controllers\Teacher\CourseTeacherController;
+use App\Http\Controllers\Teacher\CourseStudentApprovalController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\LessonController;
@@ -14,9 +14,11 @@ use App\Http\Controllers\Admin\QuizController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\StatisticsController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Student\QuizStudentController;
 use App\Http\Controllers\Student\CourseStudentController;
 use App\Http\Controllers\Student\LessonStudentController;
+use App\Http\Controllers\Student\CertificateController;
 use App\Http\Controllers\Student\DashboardStudentController;
 
 // ADMIN
@@ -70,106 +72,62 @@ Route::prefix('admin')
 
 
 // Student
-
-Route::middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/student', function () {
-        return view('student.dashboard');
-    });
-    Route::get('/quiz/{id}', [QuizStudentController::class, 'show']);
-    Route::post('/quiz/{id}/submit', [QuizStudentController::class, 'submit']);
-});
-
-
 Route::middleware(['auth', 'role:student'])
     ->prefix('student')
     ->name('student.')
     ->group(function () {
 
-        Route::get('/courses', [CourseStudentController::class, 'index'])
-            ->name('courses.index');
+        // Dashboard
+        Route::get('/', [App\Http\Controllers\Student\DashboardStudentController::class, 'index'])
+            ->name('dashboard');
 
-        Route::get('/courses/{course}', [CourseStudentController::class, 'show'])
-            ->name('courses.show');
+        // Courses
+        Route::controller(CourseStudentController::class)->group(function () {
+            Route::get('/courses', 'index')->name('courses.index');
+            Route::get('/courses/{course}', 'show')->name('courses.show');
+            Route::post('/courses/{course}/enroll', 'enroll')->name('courses.enroll');
+            Route::delete('/courses/{course}/unenroll', 'unenroll')->name('courses.unenroll');
+            Route::post('/courses/{course}/complete', 'complete')->name('courses.complete');
+        });
 
-        Route::get('/lessons/{lesson}', [LessonStudentController::class, 'show'])
-            ->name('lessons.show');
-    });
+        // Lessons
+        Route::controller(LessonStudentController::class)->group(function () {
+            Route::get('/lessons/{lesson}', 'show')->name('lessons.show');
+            Route::post('/lessons/{lesson}/complete', 'complete')->name('lessons.complete');
+        });
 
-Route::middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/student', function () {
-        return view('student.dashboard');
-    });
-});
+        // Quizzes
+        Route::controller(QuizStudentController::class)->group(function () {
+            Route::get('/quiz/{quiz}', 'show')->name('quiz.show');
+            Route::post('/quiz/{quiz}/submit', 'submit')->name('quiz.submit');
+            Route::get('/quiz/{quiz}/result', 'result')->name('quiz.result');
+            Route::post('/quiz/{quiz}/retry', 'retry')->name('quiz.retry');
+        });
+        // Trong routes/web.php - thêm vào group student
+        Route::prefix('certificates')->name('certificates.')->group(function () {
+            Route::get('/', [CertificateController::class, 'index'])
+                ->name('index');
+            Route::get('/course/{course}', [CertificateController::class, 'show'])
+                ->name('show');
+            Route::get('/course/{course}/download', [CertificateController::class, 'download'])
+                ->name('download');
+        });
 
+        Route::post('/certificates/{course}/generate', [CertificateController::class, 'generate'])
+            ->name('certificates.generate');
 
-
-Route::middleware(['auth', 'role:student'])
-    ->prefix('student')
-    ->name('student.')
-    ->group(function () {
-
-        Route::post(
-            'courses/{course}/enroll',
-            [CourseStudentController::class, 'enroll']
-        )->name('courses.enroll');
-
+        // Route công khai để xác thực chứng chỉ
         Route::get(
-            'courses/{course}',
-            [CourseStudentController::class, 'show']
-        )->name('courses.show');
+            '/certificates/verify/{certificateNumber}',
+            [CertificateController::class, 'verify']
+        )
+            ->name('certificates.verify');
 
-        Route::get(
-            'lessons/{lesson}',
-            [LessonStudentController::class, 'show']
-        )->name('lessons.show');
+        // Trong routes/web.php, thêm vào group student
+        Route::get('/courses/{course}/progress', [CourseStudentController::class, 'getProgress'])
+            ->name('courses.progress');
     });
 
-
-Route::middleware(['auth', 'role:student'])
-    ->prefix('student')
-    ->name('student.')
-    ->group(function () {
-
-        Route::post(
-            'courses/{course}/enroll',
-            [CourseStudentController::class, 'enroll']
-        )->name('courses.enroll');
-
-        Route::delete(
-            'courses/{course}/unenroll',
-            [CourseStudentController::class, 'unenroll']
-        )->name('courses.unenroll');
-    });
-
-Route::middleware(['auth', 'role:student'])
-    ->prefix('student')
-    ->name('student.')
-    ->group(function () {
-
-        // Hiển thị quiz
-        Route::get(
-            'quiz/{quiz}',
-            [QuizStudentController::class, 'show']
-        )->name('quiz.show');
-
-        // Nộp bài quiz
-        Route::post(
-            'quiz/{quiz}/submit',
-            [QuizStudentController::class, 'submit']
-        )->name('quiz.submit');
-    });
-
-// routes/web.php
-Route::post('/quiz/{quiz}/submit', [QuizStudentController::class, 'submit'])
-    ->name('student.quiz.submit');
-
-Route::get('/quiz/{quiz}/result', [QuizStudentController::class, 'result'])
-    ->name('student.quiz.result');
-
-Route::post(
-    'lessons/{lesson}/complete',
-    [LessonStudentController::class, 'complete']
-)->name('lessons.complete');
 
 //====================================================================================================================
 
@@ -183,7 +141,7 @@ Route::middleware(['auth', 'role:teacher'])
 
         // ===== 1. DASHBOARD =====
         Route::get('/', [DashboardTeacherController::class, 'index'])->name('dashboard');
-        Route::get('/dashboard/statistics', [DashboardTeacherController::class, 'statistics'])->name('statistics');
+        Route::get('/statistics', [DashboardTeacherController::class, 'statistics'])->name('statistics');
         Route::get('/courses/{course}/dashboard', [DashboardTeacherController::class, 'courseDashboard'])->name('courses.dashboard');
 
         // ===== 2. COURSE MANAGEMENT =====
@@ -218,6 +176,39 @@ Route::middleware(['auth', 'role:teacher'])
 
         // ===== 5. QUIZ MANAGEMENT =====
         Route::resource('quizzes', QuizManageController::class);
+
+        // ===== 6. STUDENT APPROVAL =====
+        // Approval trong từng khóa học
+        Route::prefix('courses/{course}/students')->name('courses.students.')->group(function () {
+            Route::get('/pending', [CourseStudentApprovalController::class, 'pending'])
+                ->name('pending');
+            Route::get('/pending-count', [CourseStudentApprovalController::class, 'getPendingCount'])
+                ->name('pending-count');
+            Route::post('/{userId}/approve', [CourseStudentApprovalController::class, 'approve'])
+                ->name('approve');
+            Route::post('/{userId}/reject', [CourseStudentApprovalController::class, 'reject'])
+                ->name('reject');
+            Route::post('/{userId}/block', [CourseStudentApprovalController::class, 'block'])
+                ->name('block');
+            Route::post('/{userId}/unblock', [CourseStudentApprovalController::class, 'unblock'])
+                ->name('unblock');
+        });
+
+        // ===== 7. ALL PENDING STUDENTS =====
+        // 👇 SỬA QUAN TRỌNG: Bỏ /teacher thừa, dùng students/pending/all
+        Route::get('/teacher/students/pending/all', [CourseStudentApprovalController::class, 'allPending'])
+            ->name('students.pending.all');  // Tên route: teacher.students.pending.all
+
+        // 👇 Route API riêng cho count (nếu cần)
+        Route::get('/teacher/students/pending/count', function () {
+            $pendingCount = DB::table('course_user')
+                ->join('courses', 'course_user.course_id', '=', 'courses.id')
+                ->where('courses.teacher_id', auth()->id())
+                ->where('course_user.status', 'pending')
+                ->count();
+
+            return response()->json(['count' => $pendingCount]);
+        })->name('students.pending.count');
     });
 //====================================================================================================================
 

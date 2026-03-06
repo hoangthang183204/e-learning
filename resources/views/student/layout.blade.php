@@ -1,6 +1,7 @@
 {{-- resources/views/layouts/student.blade.php --}}
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
+
     <style>
         * {
             margin: 0;
@@ -29,7 +30,7 @@
         /* Navbar */
         .navbar {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%) !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             padding: 12px 0;
         }
 
@@ -41,7 +42,7 @@
         }
 
         .navbar-nav .nav-link {
-            color: rgba(255,255,255,0.9) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
             font-weight: 500;
             padding: 8px 16px !important;
             margin: 0 4px;
@@ -49,12 +50,12 @@
         }
 
         .navbar-nav .nav-link:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: white !important;
         }
 
         .navbar-nav .nav-link.active {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white !important;
         }
 
@@ -162,20 +163,20 @@
             .navbar-nav {
                 margin: 10px 0;
             }
-            
+
             .navbar-nav .nav-link {
                 padding: 10px !important;
             }
-            
+
             .logout-btn {
                 width: 100%;
                 justify-content: center;
             }
-            
+
             .page-header {
                 padding: 15px;
             }
-            
+
             .page-title {
                 font-size: 20px;
             }
@@ -201,27 +202,30 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link @if(request()->routeIs('student.dashboard')) active @endif" 
-                           href="/student">
+                        <a class="nav-link @if (request()->routeIs('student.dashboard')) active @endif" href="/student">
                             <i class="bi bi-house-door me-1"></i> Trang chủ
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @if(request()->routeIs('student.courses.*')) active @endif" 
-                           href="{{ route('student.courses.index') }}">
+                        <a class="nav-link @if (request()->routeIs('student.courses.*')) active @endif"
+                            href="{{ route('student.courses.index') }}">
                             <i class="bi bi-book me-1"></i> Khoá học
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @if(request()->routeIs('student.quizzes.*')) active @endif" 
-                           href="">
+                        <a class="nav-link @if (request()->routeIs('student.quizzes.*')) active @endif" href="">
                             <i class="bi bi-pencil-square me-1"></i> Bài quiz
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @if(request()->routeIs('student.progress')) active @endif" 
-                           href="">
+                        <a class="nav-link @if (request()->routeIs('student.progress')) active @endif" href="">
                             <i class="bi bi-graph-up me-1"></i> Tiến độ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @if (request()->routeIs('student.certificates.*')) active @endif"
+                            href="{{ route('student.certificates.index') }}">
+                            <i class="bi bi-award me-1"></i> Chứng chỉ
                         </a>
                     </li>
                 </ul>
@@ -231,7 +235,7 @@
                         <i class="bi bi-person-circle me-1"></i>
                         {{ auth()->user()->name ?? 'Student' }}
                     </span>
-                    
+
                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                         @csrf
                         <button type="submit" class="logout-btn">
@@ -287,7 +291,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     @yield('scripts')
 </body>
+
 </html>

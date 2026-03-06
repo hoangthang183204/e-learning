@@ -254,6 +254,23 @@
                             <span class="menu-text">Học viên</span>
                         </a>
                     </li>
+
+                    <li>
+                        <a href="{{ route('teacher.students.pending.all') }}" class="@yield('pending-active')">
+                            <i class="bi bi-person-check"></i>
+                            <span class="menu-text">Duyệt học viên</span>
+                            @php
+                                $totalPending = \DB::table('course_user')
+                                    ->join('courses', 'course_user.course_id', '=', 'courses.id')
+                                    ->where('courses.teacher_id', auth()->id())
+                                    ->where('course_user.status', 'pending')
+                                    ->count();
+                            @endphp
+                            @if ($totalPending > 0)
+                                <span class="badge bg-danger ms-auto">{{ $totalPending }}</span>
+                            @endif
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('teacher.statistics') }}" class="@yield('statistics-active')">
                             <i class="bi bi-graph-up"></i>
