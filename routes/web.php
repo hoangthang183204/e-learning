@@ -213,19 +213,49 @@ Route::middleware(['auth', 'role:teacher'])
 //====================================================================================================================
 
 
-Route::middleware(['auth', 'lesson.access'])
-    ->group(function () {
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
 
-        Route::get(
-            'lessons/{lesson}',
-            [LessonStudentController::class, 'show']
-        )->name('lessons.show');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-        Route::post(
-            'lessons/{lesson}/complete',
-            [LessonStudentController::class, 'complete']
-        )->name('lessons.complete');
-    });
+// ===== LESSON ACCESS (yêu cầu đăng nhập) =====
+Route::middleware(['auth'])->group(function () {
+    Route::get('lessons/{lesson}', [LessonStudentController::class, 'show'])
+        ->name('lessons.show')
+        ->middleware('lesson.access');
+
+    Route::post('lessons/{lesson}/complete', [LessonStudentController::class, 'complete'])
+        ->name('lessons.complete');
+});
+
+// routes/web.php
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Route quên mật khẩu (nếu có)
+Route::get('/forgot-password', [AuthController::class, 'showForgot'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'forgot'])->name('password.email');
+
+// Route::middleware(['auth', 'lesson.access'])
+//     ->group(function () {
+
+//         Route::get(
+//             'lessons/{lesson}',
+//             [LessonStudentController::class, 'show']
+//         )->name('lessons.show');
+
+//         Route::post(
+//             'lessons/{lesson}/complete',
+//             [LessonStudentController::class, 'complete']
+//         )->name('lessons.complete');
+//     });
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
