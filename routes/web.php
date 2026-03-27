@@ -132,8 +132,6 @@ Route::middleware(['auth', 'role:student'])
 //====================================================================================================================
 
 // Teacher
-
-
 Route::middleware(['auth', 'role:teacher'])
     ->prefix('teacher')
     ->name('teacher.')
@@ -195,12 +193,11 @@ Route::middleware(['auth', 'role:teacher'])
         });
 
         // ===== 7. ALL PENDING STUDENTS =====
-        // 👇 SỬA QUAN TRỌNG: Bỏ /teacher thừa, dùng students/pending/all
-        Route::get('/teacher/students/pending/all', [CourseStudentApprovalController::class, 'allPending'])
+        Route::get('/students/pending/all', [CourseStudentApprovalController::class, 'allPending'])
             ->name('students.pending.all');  // Tên route: teacher.students.pending.all
 
         // 👇 Route API riêng cho count (nếu cần)
-        Route::get('/teacher/students/pending/count', function () {
+        Route::get('/students/pending/count', function () {
             $pendingCount = DB::table('course_user')
                 ->join('courses', 'course_user.course_id', '=', 'courses.id')
                 ->where('courses.teacher_id', auth()->id())
@@ -212,12 +209,15 @@ Route::middleware(['auth', 'role:teacher'])
     });
 //====================================================================================================================
 
-
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    // Route quên mật khẩu (nếu có)
+    Route::get('/forgot-password', [AuthController::class, 'showForgot'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'forgot'])->name('password.email');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -232,34 +232,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('lessons.complete');
 });
 
-// routes/web.php
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-// Route quên mật khẩu (nếu có)
-Route::get('/forgot-password', [AuthController::class, 'showForgot'])->name('password.request');
-Route::post('/forgot-password', [AuthController::class, 'forgot'])->name('password.email');
-
-// Route::middleware(['auth', 'lesson.access'])
-//     ->group(function () {
-
-//         Route::get(
-//             'lessons/{lesson}',
-//             [LessonStudentController::class, 'show']
-//         )->name('lessons.show');
-
-//         Route::post(
-//             'lessons/{lesson}/complete',
-//             [LessonStudentController::class, 'complete']
-//         )->name('lessons.complete');
-//     });
-
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 
 // Route::middleware(['auth', 'role:teacher'])->get('/teacher', [DashboardTeacherController::class, 'teacher']);
 // Route::middleware(['auth', 'role:admin'])->get('/admin', [DashboardController::class, 'admin']);

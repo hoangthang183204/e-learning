@@ -35,7 +35,7 @@
                 <a href="{{ route('teacher.courses.edit', $course) }}" class="btn btn-outline-primary">
                     <i class="bi bi-pencil me-1"></i> Sửa
                 </a>
-                <a href="{{ route('teacher.lessons.create', $course) }}" class="btn btn-primary">
+                <a href="{{ route('teacher.courses.create', $course) }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-1"></i> Thêm bài học
                 </a>
             </div>
@@ -183,11 +183,11 @@
                                             </div>
                                         </div>
                                         <div class="btn-group">
-                                            <a href="{{ route('teacher.lessons.show', [$course, $lesson]) }}"
+                                            <a href="{{ route('teacher.courses.show', [$course, $lesson]) }}"
                                                 class="btn btn-sm btn-outline-info" title="Xem">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="{{ route('teacher.lessons.edit', [$course, $lesson]) }}"
+                                            <a href="{{ route('teacher.courses.edit', [$course, $lesson]) }}"
                                                 class="btn btn-sm btn-outline-secondary" title="Sửa">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
@@ -264,7 +264,6 @@
                                             <br>
                                             <small class="text-secondary">
                                                 <i class="bi bi-clock me-1"></i>
-                                                {{ $student->pivot->enrolled_at->diffForHumans() }}
                                             </small>
                                         </div>
                                     </div>

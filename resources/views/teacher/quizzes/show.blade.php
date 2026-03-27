@@ -175,7 +175,7 @@
                         <tr>
                             <th class="text-secondary">Bài học:</th>
                             <td>
-                                <a href="{{ route('teacher.lessons.show', [$quiz->lesson->course, $quiz->lesson]) }}" 
+                                <a href="{{ route('lessons.show', [$quiz->lesson->course, $quiz->lesson]) }}" 
                                    class="text-decoration-none">
                                     {{ $quiz->lesson->title }}
                                 </a>
