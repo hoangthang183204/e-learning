@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/Teacher/TeacherCourseController.php
+// app/Http/Controllers/Teacher/CourseTeacherController.php
 
 namespace App\Http\Controllers\Teacher;
 
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class TeacherCourseController extends Controller
+class CourseTeacherController extends Controller
 {
     /**
      * Hiển thị danh sách khóa học

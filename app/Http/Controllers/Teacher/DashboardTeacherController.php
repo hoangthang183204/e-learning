@@ -135,14 +135,10 @@ class DashboardTeacherController extends Controller
 
         $students = $course->students()->paginate(10);
         $totalStudents = $course->students()->count();
-
         $totalLessons = $course->lessons()->count();
 
         // Thống kê bài học đã hoàn thành
-        $completedLessons = Lesson::where('course_id', $course->id)
-            ->withCount('completedBy')
-            ->get();
-
+        $completedLessons = Lesson::where('course_id', $course->id)->get();
         $totalCompletedLessons = $completedLessons->sum('completed_by_count');
         $avgLessonProgress = $totalLessons > 0
             ? round(($totalCompletedLessons / ($totalStudents * $totalLessons)) * 100, 1)
@@ -163,6 +159,28 @@ class DashboardTeacherController extends Controller
                 );
                 return $quiz;
             });
+        $allQuizResults = QuizResult::whereIn('quiz_id', Quiz::whereIn('lesson_id', $course->lessons->pluck('id'))->pluck('id'));
+
+        $passRate = round(
+            $allQuizResults->where('passed', 1)->count() / max($allQuizResults->count(), 1) * 100,
+            2
+        );
+
+        // Tính điểm trung bình của tất cả quiz trong khóa học
+        $averageScore = $allQuizResults->avg('score') ?? 0;
+
+        // Lấy top học viên
+        $topStudents = DB::table('quiz_results')
+            ->whereIn('quiz_id', Quiz::whereIn('lesson_id', $course->lessons->pluck('id'))->pluck('id'))
+            ->select('user_id', DB::raw('AVG(score) as avg_score'))
+            ->groupBy('user_id')
+            ->orderBy('avg_score', 'desc')
+            ->take(10)
+            ->get();
+
+        foreach ($topStudents as $student) {
+            $student->user = User::find($student->user_id);
+        }
 
         return view('teacher.courses.dashboard', compact(
             'course',
@@ -171,7 +189,10 @@ class DashboardTeacherController extends Controller
             'totalLessons',
             'completedLessons',
             'avgLessonProgress',
-            'quizzes'
+            'quizzes',
+            'passRate',
+            'averageScore',
+            'topStudents'
         ));
     }
 
